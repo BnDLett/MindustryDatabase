@@ -7,6 +7,7 @@ import mindustry.game.EventType;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
 import mindustry.mod.Plugin;
+import mindustry.net.Administration;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -20,16 +21,9 @@ public class Main extends Plugin {
     public final String pluginMessageName = "[gray]<[#003ec8]DDNS Moderation System[gray]>[white] ";
     private final Map<String, String> playerIdentifiers = new HashMap<String, String>();
     private final Random randomGenerator = new Random();
-    private final DDNSPlayerDatabase database;
-
-    {
-        try {
-            database = new DDNSPlayerDatabase();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    private boolean databaseConfigured;
+    private DDNSPlayerDatabase database;
+    public static Administration.Config databaseLocation;
 
     /**
      * @param adminLevel whether to only allow up to admin level.
@@ -57,9 +51,43 @@ public class Main extends Plugin {
         return null;
     }
 
+    private void databaseNotConfiguredWarning() {
+        databaseConfigured = false;
+        Log.warn("There is no configuration for the database! Ensure you've set it up so that players" +
+                " can join.");
+    }
+
+    private void setupDatabase() {
+        try {
+            database = new DDNSPlayerDatabase();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public void init(){
+        databaseLocation = new Administration.Config("db-location",
+                "The location of the MDN Moderation database.", "");
+
+        if (databaseLocation.string().isEmpty()) {
+            databaseNotConfiguredWarning();
+        }
+
+        if (!databaseConfigured) {
+            databaseConfigured = true;
+            setupDatabase();
+        }
+
         Events.on(EventType.PlayerJoin.class, event -> {
+            if (databaseLocation.string().isEmpty()) {
+                databaseNotConfiguredWarning();
+                event.player.kick("The moderation system was not properly configured. In order to join the" +
+                        " server, the moderation system must first be configured. Please contact a server administrator" +
+                        " to address this issue.", 0);
+                return;
+            }
+
             long newPlayerID = randomGenerator.nextInt() + (1L << 31);
             String hexPlayerID = Long.toHexString(newPlayerID);
             boolean banned;

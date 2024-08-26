@@ -15,7 +15,7 @@ public class DDNSPlayerDatabase {
 
         try {
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:config/players.db");
+            connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Main.databaseLocation.string()));
         } catch ( Exception e ) {
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );
             return;

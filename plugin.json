@@ -3,5 +3,5 @@
   "author": "BnDLett",
   "main": "moderation_system.Main",
   "description": "A moderation plugin for the DDNS server network.",
-  "version": "0.1.1"
+  "version": "0.2.0"
 }
