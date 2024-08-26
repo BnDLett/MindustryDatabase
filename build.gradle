@@ -36,9 +36,8 @@ tasks.withType(Jar).configureEach {
 dependencies{
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
-    compileOnly files("libs/ojdbc1.jar")
+    compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0'
     annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
-    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0'
     implementation 'org.xerial:sqlite-jdbc:3.30.1'
 }
 
