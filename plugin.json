@@ -1,7 +1,7 @@
 {
-  "name": "Spawn Delay",
+  "name": "DDNS Moderation System",
   "author": "BnDLett",
-  "main": "build_delay.Main",
-  "description": "A plugin that will switch a player's team to derelict until 60 seconds after they've joined.",
-  "version": 1.5
+  "main": "moderation_system.Main",
+  "description": "A moderation plugin for the DDNS server network.",
+  "version": "0.1.0"
 }
