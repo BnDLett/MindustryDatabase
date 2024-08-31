@@ -18,11 +18,11 @@ import java.util.Random;
 import static java.lang.Integer.parseInt;
 
 public class Main extends Plugin {
-    public final String pluginMessageName = "[gray]<[#003ec8]DDNS Moderation System[gray]>[white] ";
-    private final Map<String, String> playerIdentifiers = new HashMap<String, String>();
+    public final String pluginMessageName = "[gray]<[#003ec8]Moderation[gray]>[white] ";
+    private final Map<String, String> playerIdentifiers = new HashMap<>();
     private final Random randomGenerator = new Random();
     private boolean databaseConfigured;
-    private DDNSPlayerDatabase database;
+    private PlayerDatabase database;
     public static Administration.Config databaseLocation;
 
     /**
@@ -59,7 +59,7 @@ public class Main extends Plugin {
 
     private void setupDatabase() {
         try {
-            database = new DDNSPlayerDatabase();
+            database = new PlayerDatabase();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -103,8 +103,8 @@ public class Main extends Plugin {
             }
 
             if (banned) {
-                String banReason = null;
-                String banID = null;
+                String banReason;
+                String banID;
 
                 try {
                     banReason = database.getBanReason(event.player.uuid());
@@ -215,7 +215,7 @@ public class Main extends Plugin {
         handler.<Player>register("ban", "<id> <duration> <reason...>", "Ban a player.",
                 (args, player) -> {
             String id = args[0];
-            long duration = (long) parseInt(args[1]);
+            long duration = parseInt(args[1]);
             String reason = args[2];
 
             long durationMillis = duration * 86400000;
@@ -233,7 +233,7 @@ public class Main extends Plugin {
                 return;
             }
 
-            String staffID = null;
+            String staffID;
             try {
                 staffID = database.getStaffID(player.uuid());
             } catch (SQLException e) {

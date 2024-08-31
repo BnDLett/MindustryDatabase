@@ -1,7 +1,7 @@
 {
-  "name": "DDNS Moderation System",
+  "name": "Moderation System",
   "author": "BnDLett",
   "main": "moderation_system.Main",
-  "description": "A moderation plugin for the DDNS server network.",
-  "version": "0.2.0"
+  "description": "A moderation plugin.",
+  "version": "0.2.1"
 }

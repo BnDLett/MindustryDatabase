@@ -6,11 +6,11 @@ import mindustry.gen.Player;
 import java.sql.*;
 import java.util.Random;
 
-public class DDNSPlayerDatabase {
+public class PlayerDatabase {
     Connection databaseConnection;
     private final Random randomGenerator = new Random();
 
-    public DDNSPlayerDatabase() throws SQLException {
+    public PlayerDatabase() throws SQLException {
         Connection connection;
 
         try {
@@ -141,7 +141,7 @@ public class DDNSPlayerDatabase {
         ResultSet databaseResult = statement.executeQuery(String.format("SELECT * FROM staff WHERE uuid = '%s';", staff.uuid()
         ));
 
-        Boolean hasAdminPermission;
+        boolean hasAdminPermission;
 
         if (databaseResult.next()) {
             hasAdminPermission = databaseResult.getInt("admin") == 1;
