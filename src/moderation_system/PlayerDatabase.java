@@ -56,19 +56,18 @@ public class PlayerDatabase {
         statement.close();
     }
 
-    public Player getPlayerFromBanID(String banID) throws SQLException {
+    public String getUUIDFromBanID(String banID) throws SQLException {
         Statement statement = this.databaseConnection.createStatement();
         ResultSet databaseResult = statement.executeQuery(String.format("""
-                SELECT * FROM banned_players WHERE ban_id == %s;
+                SELECT * FROM banned_players WHERE ban_id == '%s';
                 """, banID
         ));
 
         String uuid = databaseResult.getString("uuid");
-        System.out.println(uuid);
 
         statement.close();
 
-        return Groups.player.find(p -> p.uuid().equals(uuid));
+        return uuid;
     }
 
     public Player getPlayerFromUUID(String UUID) throws SQLException {
@@ -158,10 +157,11 @@ public class PlayerDatabase {
     /**
      * Gets a staff member via their Discord ID.
      * @param discordID The Discord ID of the staff member.
-     * @return A Player object representing the staff member.
+     * @return A String representing the UUID of the staff member.
      * @throws SQLException An exception that is thrown by SQL.
      */
-    public Player getStaffFromDiscordID(String discordID) throws SQLException {
+    @SuppressWarnings("unused")
+    public String getStaffFromDiscordID(String discordID) throws SQLException {
         Statement statement = this.databaseConnection.createStatement();
         ResultSet databaseResult = statement.executeQuery(String.format("SELECT * FROM staff WHERE discord_id = '%s';", discordID
         ));
@@ -177,7 +177,7 @@ public class PlayerDatabase {
         statement.close();
         databaseResult.close();
 
-        return Groups.player.find(p -> p.uuid().equals(uuid));
+        return uuid;
     }
 
     /**
@@ -226,6 +226,23 @@ public class PlayerDatabase {
         statement.close();
     }
 
+    /**
+     * @param UUID The UUID of the staff member.
+     * @throws SQLException An exception that is thrown by SQL.
+     */
+    public void removeStaff(String UUID) throws SQLException {
+        Statement statement = this.databaseConnection.createStatement();
+        statement.execute(String.format("DELETE FROM staff WHERE uuid='%s'", UUID));
+    }
+
+
+    /**
+     * Gets the start of a ban by UUID.
+     * @param UUID The UUID of the player whose ban you want to get.
+     * @return A long representing the ban ID of a player.
+     * @throws SQLException An exception thrown by SQL.
+     */
+    @SuppressWarnings("unused")
     public long getBanStartTime(String UUID) throws SQLException {
         Statement statement = this.databaseConnection.createStatement();
         ResultSet databaseResult = statement.executeQuery(String.format("""
@@ -233,7 +250,11 @@ public class PlayerDatabase {
                 """, UUID
         ));
 
-        long banStartTime = databaseResult.getLong("ban_end");
+        long banStartTime = 0;
+
+        if (databaseResult.next()) {
+            banStartTime = databaseResult.getLong("ban_end");
+        }
 
         statement.close();
 
@@ -298,11 +319,6 @@ public class PlayerDatabase {
         long currentTime = System.currentTimeMillis();
         Statement statement = this.databaseConnection.createStatement();
 
-//        Player player = this.getPlayerFromUUID(UUID);
-//        if (player != null) {
-//            return;  // TODO: Make this return a specific value.
-//        }
-
         boolean generateNewBanID = true;
         String hexBanID = "";
 
@@ -351,5 +367,10 @@ public class PlayerDatabase {
         }
 
         return banIsValid;
+    }
+
+    public void removeBan(String UUID) throws SQLException {
+        Statement statement = this.databaseConnection.createStatement();
+        statement.execute(String.format("DELETE FROM banned_players WHERE uuid='%s'", UUID));
     }
 }

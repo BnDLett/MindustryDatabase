@@ -37,7 +37,7 @@ public class Main extends Plugin {
             return false;
         }
 
-        Log.info(hasDatabaseAdmin);
+//        Log.info(hasDatabaseAdmin);
         return hasDatabaseAdmin || !adminLevel;
     }
 
@@ -137,7 +137,7 @@ public class Main extends Plugin {
                     return;
                 }
             } catch (SQLException e) {
-                System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+                Log.err( e.getClass().getName() + ": " + e.getMessage() );
                 return;
             }
 
@@ -162,7 +162,7 @@ public class Main extends Plugin {
                     return;
                 }
             } catch (SQLException e) {
-                System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+                Log.err( e.getClass().getName() + ": " + e.getMessage() );
                 return;
             }
 
@@ -185,7 +185,7 @@ public class Main extends Plugin {
                     return;
                 }
             } catch (SQLException e) {
-                System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+                Log.err(e.getClass().getName() + ": " + e.getMessage());
                 return;
             }
 
@@ -260,14 +260,37 @@ public class Main extends Plugin {
                 );
                 playerToBan.kick(banMessage, 0);
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                player.sendMessage(pluginMessageName + "[scarlet]There was an error in processing your request.");
+            }
+        });
+
+        handler.<Player>register("unban", "<id>", "Unbans a player.", (args, player) -> {
+            String id = args[0];
+
+            try {
+                if (!checkPermission(true, player.uuid())) {
+                    player.sendMessage(pluginMessageName + "You do not have permission to run this command.");
+                    return;
+                }
+            } catch (SQLException e) {
+                System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+                return;
+            }
+
+            try {
+                String playerToUnban = database.getUUIDFromBanID(id);
+                database.removeBan(playerToUnban);
+                player.sendMessage(pluginMessageName + "Player was successfully unbanned.");
+            } catch (SQLException e) {
+                player.sendMessage(pluginMessageName + "An error occurred when trying to process your request.");
+                Log.err(e.getClass().getName() + ": " + e.getMessage());
             }
         });
     }
 
     @Override
     public void registerServerCommands(CommandHandler handler) {
-        handler.register("add_staff", "<uuid> <discord_id> <admin>", "Adds a new staff member. Set" +
+        handler.register("addStaff", "<uuid> <discord_id> <admin>", "Adds a new staff member. Set" +
                 " admin to true if they have the ability to ban and unban.", args -> {
             String UUID = args[0];
             String discordID = args[1];
@@ -275,11 +298,29 @@ public class Main extends Plugin {
 
             try {
                 database.addStaff(UUID, admin, discordID);
+                if (admin) {
+                    Player player = Groups.player.find(p -> p.uuid().equals(UUID));
+                    player.admin(true);
+                }
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                Log.err("An error occurred when trying to process your request.");
+                Log.err(e.getClass().getName() + ": " + e.getMessage());
             }
 
             Log.info("Staff added.");
+        });
+
+        handler.register("removeStaff", "<uuid>", "Removes a staff member.", args -> {
+            String UUID = args[0];
+
+            try {
+                database.removeStaff(UUID);
+            } catch (SQLException e) {
+                Log.err("An error occurred when trying to process your request.");
+                Log.err(e.getClass().getName() + ": " + e.getMessage());
+            }
+
+            Log.info("Staff removed.");
         });
     }
 }
