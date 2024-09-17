@@ -290,7 +290,7 @@ public class Main extends Plugin {
 
     @Override
     public void registerServerCommands(CommandHandler handler) {
-        handler.register("addStaff", "<uuid> <discord_id> <admin>", "Adds a new staff member. Set" +
+        handler.register("add-staff", "<uuid> <discord_id> <admin>", "Adds a new staff member. Set" +
                 " admin to true if they have the ability to ban and unban.", args -> {
             String UUID = args[0];
             String discordID = args[1];
@@ -310,7 +310,7 @@ public class Main extends Plugin {
             Log.info("Staff added.");
         });
 
-        handler.register("removeStaff", "<uuid>", "Removes a staff member.", args -> {
+        handler.register("remove-staff", "<uuid>", "Removes a staff member.", args -> {
             String UUID = args[0];
 
             try {

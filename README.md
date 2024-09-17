@@ -1,1 +1,1 @@
-NOTE: THIS IS SQL INJECTION VULNERBALE. 
+NOTE: this has issues need fixing (probably)
