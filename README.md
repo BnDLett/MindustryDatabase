@@ -1,1 +1,2 @@
-NOTE: THIS IS SQL INJECTION VULNERBALE. 
+# Mindustry Moderation System
+This is a plugin for a custom moderation system.
