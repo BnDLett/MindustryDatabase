@@ -8,13 +8,9 @@ import mindustry.gen.Groups;
 import mindustry.gen.Player;
 import mindustry.mod.Plugin;
 import mindustry.net.Administration;
-
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
-
+import java.time.Duration;
+import java.util.*;
 import static java.lang.Integer.parseInt;
 
 public class Main extends Plugin {
@@ -80,6 +76,26 @@ public class Main extends Plugin {
         }
 
         Events.on(EventType.PlayerJoin.class, event -> {
+            long newPlayerID = randomGenerator.nextInt() + (1L << 31);
+            String hexPlayerID = Long.toHexString(newPlayerID);
+
+//            event.player.sendMessage(pluginMessageName + hexPlayerID);
+            playerIdentifiers.put(event.player.uuid(), hexPlayerID);
+
+            try {
+                database.addPlayer(event.player.uuid(), event.player.ip(), event.player.name());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        Events.on(EventType.PlayerLeave.class, event -> {
+            playerIdentifiers.remove(event.player.uuid());
+        });
+
+        Events.on(EventType.PlayerConnect.class, event -> {
+            boolean banned;
+
             if (databaseLocation.string().isEmpty()) {
                 databaseNotConfiguredWarning();
                 event.player.kick("The moderation system was not properly configured. In order to join the" +
@@ -88,15 +104,7 @@ public class Main extends Plugin {
                 return;
             }
 
-            long newPlayerID = randomGenerator.nextInt() + (1L << 31);
-            String hexPlayerID = Long.toHexString(newPlayerID);
-            boolean banned;
-
-//            event.player.sendMessage(pluginMessageName + hexPlayerID);
-            playerIdentifiers.put(event.player.uuid(), hexPlayerID);
-
             try {
-                database.addPlayer(event.player.uuid(), event.player.ip(), event.player.name());
                 banned = database.checkBan(event.player.uuid());
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -106,18 +114,42 @@ public class Main extends Plugin {
                 String banReason;
                 String banID;
 
+                long currentTime;
+                long banEnd;
+                long banDuration;
+
+                long durationHours;
+                long durationDays;
+                long durationMinutes;
+                long durationSeconds;
+
+                Duration duration;
+
                 try {
                     banReason = database.getBanReason(event.player.uuid());
                     banID = database.getBanID(event.player.uuid());
+                    currentTime = System.currentTimeMillis();
+                    banEnd = database.getBanEndTime(event.player.uuid());
+
+                    banDuration = banEnd - currentTime;
+                    duration = Duration.ofMillis(banDuration);
+
+                    durationSeconds = duration.getSeconds() % 60;
+                    durationMinutes = duration.toMinutes() % 60;
+                    durationHours = duration.toHours() % 60;
+                    durationDays = duration.toDays() % 24;
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
 
                 String banMessage = String.format("""
                         [scarlet]You are banned from this server.
-                        [orange]Reason[gray]:[white] %s
                         
-                        [orange]Ban ID[gray]:[white] %s""", banReason, banID
+                        [orange]Reason[gray]:[white] %s
+                        [orange]Time remaining[gray]:[white] %d days %d hours %d minutes %d seconds
+                        
+                        [orange]Ban ID[gray]:[white] %s""", banReason, durationDays, durationHours, durationMinutes,
+                        durationSeconds, banID
                 );
                 event.player.kick(banMessage, 0);
             }

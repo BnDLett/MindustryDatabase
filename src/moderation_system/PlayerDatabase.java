@@ -3,6 +3,8 @@ package moderation_system;
 import arc.util.Log;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
+import mindustry.net.Administration;
+
 import java.sql.*;
 import java.util.Random;
 
@@ -12,10 +14,15 @@ public class PlayerDatabase {
 
     public PlayerDatabase() throws SQLException {
         Connection connection;
+        Administration.Config databaseUsername = new Administration.Config("db-username",
+                "The username for the moderation database.", "");
+        Administration.Config databasePassword = new Administration.Config("db-password",
+                "The password for the moderation database.", "");
 
         try {
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection(String.format("jdbc:sqlite:%s", Main.databaseLocation.string()));
+            String url = String.format("jdbc:sqlite:%s", Main.databaseLocation.string());
+            connection = DriverManager.getConnection(url, databaseUsername.string(), databasePassword.string());
         } catch ( Exception e ) {
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );
             return;
@@ -97,7 +104,7 @@ public class PlayerDatabase {
             return;
         }
         PreparedStatement statement = this.databaseConnection.prepareStatement(
-                "INSERT INTO players (uuid, last_ip, last_name) VALUES (?,?,?);"
+                "INSERT INTO players (uuid, last_ip, last_name) VALUES (?, ?, ?);"
         );
         statement.setString(1,UUID);
         statement.setString(2,lastIP);
@@ -230,7 +237,7 @@ public class PlayerDatabase {
         }
 
         PreparedStatement statement = this.databaseConnection.prepareStatement(
-                "INSERT INTO staff (uuid, admin, discord_id) VALUES (?,?,?);"
+                "INSERT INTO staff (uuid, admin, discord_id) VALUES (?, ?, ?);"
         );
         statement.setString(1,UUID);
         if(admin_level){
@@ -259,11 +266,10 @@ public class PlayerDatabase {
 
     /**
      * Gets the start of a ban by UUID.
-     * @param UUID The UUID of the player whose ban you want to get.
-     * @return A long representing the ban ID of a player.
+     * @param UUID The UUID of the target player.
+     * @return A long representing the start of a player's ban.
      * @throws SQLException An exception thrown by SQL.
      */
-    @SuppressWarnings("unused")
     public long getBanStartTime(String UUID) throws SQLException {
         PreparedStatement statement = this.databaseConnection.prepareStatement(
                 "SELECT * FROM banned_players WHERE uuid = ?;"
@@ -274,7 +280,7 @@ public class PlayerDatabase {
         long banStartTime = 0;
 
         if (databaseResult.next()) {
-            banStartTime = databaseResult.getLong("ban_end");
+            banStartTime = databaseResult.getLong("ban_start");
         }
 
         statement.close();
@@ -282,6 +288,12 @@ public class PlayerDatabase {
         return banStartTime;
     }
 
+    /**
+     * Gets the start of a ban by UUID.
+     * @param UUID The UUID of the target player.
+     * @return A long representing the end of a player's ban.
+     * @throws SQLException An exception thrown by SQL.
+     */
     public long getBanEndTime(String UUID) throws SQLException {
         PreparedStatement statement = this.databaseConnection.prepareStatement(
                 "SELECT * FROM banned_players WHERE uuid = ?;"
@@ -339,7 +351,8 @@ public class PlayerDatabase {
     public void addBan(String UUID, String banReason, String endTime, String staffID) throws SQLException {
         long currentTime = System.currentTimeMillis();
         PreparedStatement statement = this.databaseConnection.prepareStatement(
-                "INSERT INTO banned_players (uuid, ban_id, ban_reason, ban_start, ban_end, discord_id) VALUES (?,?,?,?,?,?);"
+                "INSERT INTO banned_players (uuid, ban_id, ban_reason, ban_start, ban_end, discord_id) VALUES (?, ?, " +
+                        "?, ?, ?, ?);"
         );
 
         boolean generateNewBanID = true;
@@ -388,7 +401,7 @@ public class PlayerDatabase {
 
     public void removeBan(String UUID) throws SQLException {
         PreparedStatement statement = this.databaseConnection.prepareStatement(
-                "DELETE FROM banned_players WHERE UUID=='%s';"
+                "DELETE FROM banned_players WHERE UUID==?;"
         );
         statement.setString(1,UUID);
         statement.executeUpdate();

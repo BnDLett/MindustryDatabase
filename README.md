@@ -1,1 +1,2 @@
-NOTE: this has issues need fixing (probably)
+# Mindustry Moderation System
+This is a plugin for a custom moderation system.
