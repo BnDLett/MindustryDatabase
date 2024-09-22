@@ -229,22 +229,20 @@ public class PlayerDatabase {
      * @param admin_level A boolean representing if a staff member is an admin (has permission to ban).
      * @throws SQLException An exception that is thrown by SQL.
      */
-    public void addStaff(String UUID, Boolean admin_level, String discordID) throws SQLException {
+    public void addStaff(String UUID, Boolean adminLevel, String discordID) throws SQLException {
         Player player = this.getStaffFromUUID(UUID);
         if (player != null) {
             Log.info("That staff member is already in the database.");
             return;
         }
 
+        int adminLevelInteger = adminLevel ? 1 : 0;
+
         PreparedStatement statement = this.databaseConnection.prepareStatement(
                 "INSERT INTO staff (uuid, admin, discord_id) VALUES (?, ?, ?);"
         );
         statement.setString(1,UUID);
-        if(admin_level){
-                statement.setInt(2,1);
-        }else{
-            statement.setInt(2,1);
-        }
+        statement.setInt(2, adminLevelInteger);
         statement.setString(3,discordID);
         statement.executeUpdate();
         statement.close();
