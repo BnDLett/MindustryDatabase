@@ -3,6 +3,7 @@ package moderation_system;
 import arc.Events;
 import arc.util.CommandHandler;
 import arc.util.Log;
+import mindustry.Vars;
 import mindustry.game.EventType;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
@@ -152,6 +153,23 @@ public class Main extends Plugin {
                         durationSeconds, banID
                 );
                 event.player.kick(banMessage, 0);
+            }
+        });
+
+        Vars.netServer.admins.addChatFilter((player, text) -> {
+            try {
+                if (checkPermission(true, player.uuid())) {
+                    return String.format("[scarlet][Admin][] [%s] %s", player.coloredName(), text);
+                }
+                else if (checkPermission(false, player.uuid())) {
+                    return String.format("[scarlet][Staff][] [%s] %s", player.coloredName(), text);
+                }
+                else {
+                    return String.format("[%s] %s", player.coloredName(), text);
+                }
+            } catch (SQLException e) {
+                Log.err(e);
+                return "";
             }
         });
     }
