@@ -156,20 +156,33 @@ public class Main extends Plugin {
             }
         });
 
-        Vars.netServer.admins.addChatFilter((player, text) -> {
+//        Vars.netServer.admins.addChatFilter((player, text) -> {
+//            try {
+//                if (checkPermission(true, player.uuid())) {
+//                    return String.format("[scarlet][Admin][] [%s] %s", player.coloredName(), text);
+//                }
+//                else if (checkPermission(false, player.uuid())) {
+//                    return String.format("[scarlet][Staff][] [%s] %s", player.coloredName(), text);
+//                }
+//                else {
+//                    return String.format("[%s] %s", player.coloredName(), text);
+//                }
+//            } catch (SQLException e) {
+//                Log.err(e);
+//                return "";
+//            }
+//        });
+
+        Events.on(EventType.PlayerJoin.class, event -> {
             try {
-                if (checkPermission(true, player.uuid())) {
-                    return String.format("[scarlet][Admin][] [%s] %s", player.coloredName(), text);
+                if (checkPermission(true, event.player.uuid())) {
+                    event.player.name(String.format("[#c6633e]([scarlet]Admin[#c6633e])[] %s", event.player.name()));
                 }
-                else if (checkPermission(false, player.uuid())) {
-                    return String.format("[scarlet][Staff][] [%s] %s", player.coloredName(), text);
-                }
-                else {
-                    return String.format("[%s] %s", player.coloredName(), text);
+                else if (checkPermission(false, event.player.uuid())) {
+                    event.player.name(String.format("[#c6633e]([scarlet]Staff[#c6633e])[] %s", event.player.name()));
                 }
             } catch (SQLException e) {
                 Log.err(e);
-                return "";
             }
         });
     }
