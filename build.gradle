@@ -21,14 +21,15 @@ ext{
     jabelVersion = "93fde537c7"
 }
 
-//java 8 backwards compatibility flag
 allprojects{
     apply plugin: 'maven-publish'
 
     group = 'com.github.BnDLett'
 
-    tasks.withType(JavaCompile){
-        options.compilerArgs.addAll(['--release', '8'])
+    tasks.withType(JavaCompile).tap{
+        configureEach{
+            options.compilerArgs.addAll(['--release', '8'])
+        }
     }
 }
 
@@ -40,7 +41,6 @@ tasks.withType(Jar).configureEach {
 dependencies{
     compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
     compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
-    compileOnly 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.0'
     annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
     implementation 'org.xerial:sqlite-jdbc:3.30.1'
 }
