@@ -3,7 +3,6 @@ package moderation_system;
 import arc.Events;
 import arc.util.CommandHandler;
 import arc.util.Log;
-import mindustry.Vars;
 import mindustry.game.EventType;
 import mindustry.gen.Groups;
 import mindustry.gen.Player;
