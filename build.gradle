@@ -53,7 +53,11 @@ java {
 
 publishing {
     publications {
-        maven(MavenPublication) {
+        mavenJava(MavenPublication) {
+            groupId = 'org.lettsn'
+            artifactId = 'moderation_system'
+            version = '1.1'
+
             from components.java
         }
     }
