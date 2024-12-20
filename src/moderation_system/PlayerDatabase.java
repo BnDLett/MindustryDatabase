@@ -226,7 +226,6 @@ public class PlayerDatabase {
     /**
      * Adds a staff member into the database.
      * @param UUID The UUID of the staff member.
-     * @param admin_level A boolean representing if a staff member is an admin (has permission to ban).
      * @throws SQLException An exception that is thrown by SQL.
      */
     public void addStaff(String UUID, Boolean adminLevel, String discordID) throws SQLException {
