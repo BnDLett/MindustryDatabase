@@ -1,6 +1,8 @@
 apply plugin: "java"
+apply plugin: 'maven-publish'
 
-version '1.0'
+group = 'com.github.BnDLett'
+version '2.0'
 
 sourceCompatibility = JavaVersion.VERSION_16
 
@@ -19,18 +21,6 @@ ext{
     //the build number that this plugin is made for
     mindustryVersion = 'v145'
     jabelVersion = "93fde537c7"
-}
-
-allprojects{
-    apply plugin: 'maven-publish'
-
-    group = 'com.github.BnDLett'
-
-    tasks.withType(JavaCompile).tap{
-        configureEach{
-            options.compilerArgs.addAll(['--release', '8'])
-        }
-    }
 }
 
 tasks.withType(Jar).configureEach {
@@ -54,4 +44,22 @@ jar{
     from(rootDir){
         include "plugin.json"
     }
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+wrapper {
+    gradleVersion = "7.3.3"
+    distributionType = Wrapper.DistributionType.ALL
 }
