@@ -5,5 +5,5 @@ before_install:
   - source install-jdk.sh --feature 17
   - jshell --version
 install:
-  - ./gradlew jar
+  - ./gradlew publishToMavenLocal
   - echo -n > gradle.properties #zero out gradle.properties
