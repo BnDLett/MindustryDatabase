@@ -1,4 +1,4 @@
-package moderation_system;
+package org.lettsn.PlayerDatabase;
 
 import arc.util.Log;
 import mindustry.gen.Groups;
@@ -7,12 +7,15 @@ import mindustry.net.Administration;
 import java.sql.*;
 import java.util.Random;
 
-public class PlayerDatabase {
+public class OldDatabase {
     Connection databaseConnection;
     private final Random randomGenerator = new Random();
 
-    public PlayerDatabase() throws SQLException {
+    public OldDatabase() throws SQLException {
         Connection connection;
+
+        Administration.Config databaseLocation = new Administration.Config("db-location",
+        "The URL/location of the database.", "");
         Administration.Config databaseUsername = new Administration.Config("db-username",
                 "The username for the moderation database.", "");
         Administration.Config databasePassword = new Administration.Config("db-password",
@@ -20,7 +23,7 @@ public class PlayerDatabase {
 
         try {
             Class.forName("org.sqlite.JDBC");
-            String url = String.format("jdbc:sqlite:%s", Main.databaseLocation.string());
+            String url = String.format("jdbc:sqlite:%s", databaseLocation.string());
             connection = DriverManager.getConnection(url, databaseUsername.string(), databasePassword.string());
         } catch ( Exception e ) {
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );

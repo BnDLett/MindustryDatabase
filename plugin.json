@@ -1,7 +1,7 @@
 {
-  "name": "Moderation System",
-  "author": "BnDLett",
-  "main": "moderation_system.Main",
-  "description": "A moderation plugin.",
-  "version": "0.5.2"
+  "name": "Mindustry Database",
+  "author": "LSN",
+  "main": "org.lettsn.PlayerDatabase.Main",
+  "description": "A plugin that holds data and information about a player.",
+  "version": "1.0.0"
 }
