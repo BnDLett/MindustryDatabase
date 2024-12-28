@@ -1,5 +1,7 @@
 package org.lettsn.PlayerDatabase;
 
-public class Main {
+import mindustry.mod.Plugin;
+
+public class Main extends Plugin {
 
 }
