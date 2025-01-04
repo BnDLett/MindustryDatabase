@@ -2,28 +2,28 @@
 
 CREATE TABLE IF NOT EXISTS account(
 
-    id               INT UNSIGNED        NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    username         VARCHAR(32)         NOT NULL UNIQUE,
-    account_creation BIGINT(20) UNSIGNED NOT NULL,
-    salt             BINARY(16),         NOT NULL,
-    password         BINARY(128),        NOT NULL    
+    id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username      VARCHAR(32)  NOT NULL UNIQUE,
+    creation_date DATETIME     NOT NULL,
+    salt          BINARY(16),  NOT NULL,
+    password      BINARY(128), NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS ip_address(
 
-    id                INT UNSIGNED        NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    ip                VARCHAR(15)         NOT NULL UNIQUE,
-    registration_date BIGINT(20) UNSIGNED NOT NULL,
-    blacklisted       BOOLEAN             NOT NULL,    
+    id                INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    ip                VARCHAR(15)  NOT NULL UNIQUE,
+    registration_date DATETIME     NOT NULL,
+    blacklisted       BOOLEAN      NOT NULL,
 );
 
 CREATE TABLE IF NOT EXISTS account_login(
 
-    id              INT UNSIGNED        NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    account_id      INT UNSIGNED        NOT NULL,
-    ip_id           INT UNSIGNED        NOT NULL,
-    login_date      BIGINT(20) UNSIGNED NOT NULL,
-    expiration_date BIGINT(20) UNSIGNED NOT NULL,
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id      INT UNSIGNED NOT NULL,
+    ip_id           INT UNSIGNED NOT NULL,
+    login_date      DATETIME     NOT NULL,
+    expiration_date DATETIME     NOT NULL,
 
     CONSTRAINT fk_logins_user   FOREIGN KEY(account_id) REFERENCES account(id),
     CONSTRAINT fk_logins_ip     FOREIGN KEY(ip_id)      REFERENCES ip_address(id)
@@ -44,19 +44,19 @@ CREATE TABLE IF NOT EXISTS server(
     ip        VARCHAR(15)  NOT NULL,
     port      INT(5)       NOT NULL,
     name      VARCHAR(100) NOT NULL,
-    last_ping BIGINT(20) unsigned DEFAULT 0,
+    last_ping DATETIME     NULL, -- TODO Required?
 
     CONSTRAINT u_server_ip_port UNIQUE(ip, port)
 );
 
 -- TODO To discuss
-CREATE TABLE IF NOT EXISTS user_joins(
+CREATE TABLE IF NOT EXISTS account_joins(
 
-    id           INT UNSIGNED        NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    account_id   INT UNSIGNED        NOT NULL,
-    server_id    INT UNSIGNED        NOT NULL,
-    join_date    BIGINT(20) UNSIGNED NOT NULL,
-    leave_date   BIGINT(20) UNSIGNED NOT NULL DEFAULT 0,
+    id           INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id   INT UNSIGNED NOT NULL,
+    server_id    INT UNSIGNED NOT NULL,
+    join_date    DATETIME     NOT NULL,
+    leave_date   DATETIME     NULL,
 
     CONSTRAINT fk_joins_user   FOREIGN KEY(account_id) REFERENCES account(id),
     CONSTRAINT fk_joins_server FOREIGN KEY(server_id)  REFERENCES server(id)
@@ -69,8 +69,8 @@ CREATE TABLE IF NOT EXISTS ban(
     staff_id        INT UNSIGNED NOT NULL,
     where_issued_id INT UNSIGNED NOT NULL, -- TODO Needed?
     reason          VARCHAR(256) NOT NULL, -- TODO Check for memory reason if 255 is better.
-    when_issued     BIGINT(20)   NOT NULL,
-    expiration_date BIGINT(20), -- TODO Use null for permanent bans?
+    when_issued     DATETIME     NOT NULL,
+    expiration_date DATETIME,    NULL
 
     CONSTRAINT fk_ban_user         FOREIGN KEY(account_id)      REFERENCES account(id),
     CONSTRAINT fk_ban_staff        FOREIGN KEY(staff_id)        REFERENCES account(id),
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS unban(
     ban_id          INT UNSIGNED NOT NULL UNIQUE,
     staff_id        INT UNSIGNED NOT NULL,
     where_issued_id INT UNSIGNED NOT NULL, -- TODO Needed?
-    when_issued     BIGINT(20)   NOT NULL,
+    when_issued     DATETIME     NOT NULL,
 
     CONSTRAINT fk_unbans_ban          FOREIGN KEY(ban_id)          REFERENCES ban(id),
     CONSTRAINT fk_unbans_staff        FOREIGN KEY(staff_id)        REFERENCES account(id),
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS kick(
     server_id       INT UNSIGNED NOT NULL,
     where_issued_id INT UNSIGNED NOT NULL, -- TODO Needed?
     reason          VARCHAR(256) NOT NULL,
-    when_issued     BIGINT(20)   NOT NULL,
+    when_issued     DATETIME     NOT NULL,
 
     CONSTRAINT fk_kicks_user         FOREIGN KEY(account_id)      REFERENCES account(id),
     CONSTRAINT fk_kicks_staff        FOREIGN KEY(staff_id)        REFERENCES account(id),
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS warn(
     staff_id        INT UNSIGNED NOT NULL,
     where_issued_id INT UNSIGNED NOT NULL, -- TODO Needed?
     reason          VARCHAR(256) NOT NULL,
-    when_issued     BIGINT(20)   NOT NULL,
+    when_issued     DATETIME     NOT NULL,
     received        BOOLEAN      NOT NULL,
 
     CONSTRAINT fk_warns_user         FOREIGN KEY(account_id)      REFERENCES account(id),
