@@ -86,19 +86,19 @@ CREATE TABLE IF NOT EXISTS account_report_reply(
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
     CONSTRAINT fk_account_report_reply_staff  FOREIGN KEY(staff_id)  REFERENCES account(id),
-    CONSTRAINT fk_account_report_reply_report FOREIGN KEY(report_id) REFERENCES report(id) ON DELETE CASCADE
+    CONSTRAINT fk_account_report_reply_report FOREIGN KEY(report_id) REFERENCES account_report(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ban(
 
-    id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    account_id  INT UNSIGNED NOT NULL,
-    staff_id    INT UNSIGNED NOT NULL,
-    server_id   INT UNSIGNED NOT NULL,
-    reason      TEXT         NOT NULL,
-    when_issued DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id      INT UNSIGNED NOT NULL,
+    staff_id        INT UNSIGNED NOT NULL,
+    server_id       INT UNSIGNED NOT NULL,
+    reason          TEXT         NOT NULL,
+    creation_date   DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
     -- Null for bans that are permanent.
-    expiration_date DATETIME(3) NULL,
+    expiration_date DATETIME(3)  NULL,
 
     CONSTRAINT fk_ban_user   FOREIGN KEY(account_id) REFERENCES account(id),
     CONSTRAINT fk_ban_staff  FOREIGN KEY(staff_id)   REFERENCES account(id),
@@ -107,10 +107,10 @@ CREATE TABLE IF NOT EXISTS ban(
 
 CREATE TABLE IF NOT EXISTS unban(
 
-    id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    ban_id      INT UNSIGNED NOT NULL UNIQUE,
-    staff_id    INT UNSIGNED NOT NULL,
-    when_issued DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
+    id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    ban_id        INT UNSIGNED NOT NULL UNIQUE,
+    staff_id      INT UNSIGNED NOT NULL,
+    creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
     CONSTRAINT fk_unban_ban   FOREIGN KEY(ban_id)   REFERENCES ban(id),
     CONSTRAINT fk_unban_staff FOREIGN KEY(staff_id) REFERENCES account(id)
@@ -118,12 +118,12 @@ CREATE TABLE IF NOT EXISTS unban(
 
 CREATE TABLE IF NOT EXISTS kick(
 
-    id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    account_id  INT UNSIGNED NOT NULL,
-    staff_id    INT UNSIGNED NOT NULL,
-    server_id   INT UNSIGNED NOT NULL,
-    reason      TEXT         NOT NULL,
-    when_issued DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
+    id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id    INT UNSIGNED NOT NULL,
+    staff_id      INT UNSIGNED NOT NULL,
+    server_id     INT UNSIGNED NOT NULL,
+    reason        TEXT         NOT NULL,
+    creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
     CONSTRAINT fk_kick_user   FOREIGN KEY(account_id) REFERENCES account(id),
     CONSTRAINT fk_kick_staff  FOREIGN KEY(staff_id)   REFERENCES account(id),
@@ -132,18 +132,33 @@ CREATE TABLE IF NOT EXISTS kick(
 
 CREATE TABLE IF NOT EXISTS warn(
 
-    id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    account_id  INT UNSIGNED NOT NULL,
-    staff_id    INT UNSIGNED NOT NULL,
-    server_id   INT UNSIGNED NOT NULL,
-    reason      TEXT         NOT NULL,
-    when_issued DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
+    id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id    INT UNSIGNED NOT NULL,
+    staff_id      INT UNSIGNED NOT NULL,
+    server_id     INT UNSIGNED NOT NULL,
+    reason        TEXT         NOT NULL,
+    creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
     -- False if the warn needs to be shown to the user, true if the user has read it.
-    received    BOOLEAN      NOT NULL,
+    received      BOOLEAN      NOT NULL,
 
     CONSTRAINT fk_warn_user   FOREIGN KEY(account_id) REFERENCES account(id),
     CONSTRAINT fk_warn_staff  FOREIGN KEY(staff_id)   REFERENCES account(id),
     CONSTRAINT fk_warn_server FOREIGN KEY(server_id)  REFERENCES server(id)
+);
+
+CREATE TABLE IF NOT EXISTS mute(
+
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id      INT UNSIGNED NOT NULL,
+    staff_id        INT UNSIGNED NOT NULL,
+    server_id       INT UNSIGNED NOT NULL,
+    reason          TEXT         NOT NULL,
+    creation_date   DATETIME(3)  NOT NULL,
+    expiration_date DATETIME(3)  NOT NULL,
+
+    CONSTRAINT fk_mute_user   FOREIGN KEY(account_id) REFERENCES account(id),
+    CONSTRAINT fk_mute_staff  FOREIGN KEY(staff_id)   REFERENCES account(id),
+    CONSTRAINT fk_mute_server FOREIGN KEY(server_id)  REFERENCES server(id)
 );
 
 CREATE TABLE IF NOT EXISTS ban_appeal(
@@ -161,7 +176,7 @@ CREATE TABLE IF NOT EXISTS ban_appeal(
 CREATE TABLE IF NOT EXISTS ban_appeal_reply(
 
     id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    ban_appeal_id INT UNSIGNED NOT NULL,
+    ban_appeal_id INT UNSIGNED NOT NULL UNIQUE,
     staff_id      INT UNSIGNED NOT NULL,
     accepted      BOOLEAN      NOT NULL,
     message       TEXT         NOT NULL DEFAULT '',
