@@ -72,8 +72,8 @@ CREATE TABLE IF NOT EXISTS account_report(
     long_reason   TEXT         NOT NULL DEFAULT '',
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
-    CONSTRAINT fk_report_account  FOREIGN KEY(account_id)  REFERENCES account(id),
-    CONSTRAINT fk_report_reported FOREIGN KEY(reported_id) REFERENCES account(id)
+    CONSTRAINT fk_account_report_account  FOREIGN KEY(account_id)  REFERENCES account(id),
+    CONSTRAINT fk_account_report_reported FOREIGN KEY(reported_id) REFERENCES account(id)
 );
 
 CREATE TABLE IF NOT EXISTS account_report_reply(
@@ -85,8 +85,8 @@ CREATE TABLE IF NOT EXISTS account_report_reply(
     message       TEXT         NOT NULL DEFAULT '',
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
-    CONSTRAINT fk_report_reply_staff  FOREIGN KEY(staff_id)  REFERENCES account(id),
-    CONSTRAINT fk_report_reply_report FOREIGN KEY(report_id) REFERENCES report(id) ON DELETE CASCADE
+    CONSTRAINT fk_account_report_reply_staff  FOREIGN KEY(staff_id)  REFERENCES account(id),
+    CONSTRAINT fk_account_report_reply_report FOREIGN KEY(report_id) REFERENCES report(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ban(
@@ -146,12 +146,38 @@ CREATE TABLE IF NOT EXISTS warn(
     CONSTRAINT fk_warn_server FOREIGN KEY(server_id)  REFERENCES server(id)
 );
 
+CREATE TABLE IF NOT EXISTS ban_appeal(
+
+    id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id    INT UNSIGNED NOT NULL,
+    ban_id        INT UNSIGNED NOT NULL,
+    message       TEXT         NOT NULL,
+    creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
+
+    CONSTRAINT fk_ban_appeal_account FOREIGN KEY(account_id) REFERENCES account(id),
+    CONSTRAINT fk_ban_appeal_ban     FOREIGN KEY(ban_id)     REFERENCES ban(id)
+);
+
+CREATE TABLE IF NOT EXISTS ban_appeal_reply(
+
+    id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    ban_appeal_id INT UNSIGNED NOT NULL,
+    staff_id      INT UNSIGNED NOT NULL,
+    accepted      BOOLEAN      NOT NULL,
+    message       TEXT         NOT NULL DEFAULT '',
+    creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
+
+    CONSTRAINT fk_ban_appeal_reply_ban   FOREIGN KEY(ban_appeal_id) REFERENCES ban_appeal(id),
+    CONSTRAINT fk_ban_appeal_reply_staff FOREIGN KEY(staff_id)      REFERENCES account(id)
+);
+
 CREATE TABLE IF NOT EXISTS ip_blacklist(
 
     id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     staff_id      INT UNSIGNED NOT NULL,
     ip_address    INET4        NOT NULL UNIQUE,
-    creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3)
+    reason        TEXT         NOT NULL DEFAULT '',
+    creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
     CONSTRAINT fk_ip_blacklist_staff FOREIGN KEY(staff_id) REFERENCES account(id)
 );
