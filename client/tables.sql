@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS server(
     -- The period of the heartbeat in milliseconds.
     heartbeat_period INT UNSIGNED      NOT NULL DEFAULT 5000,
 
-    CONSTRAINT u_server_ip_address_port UNIQUE(ip_address, port)
+    CONSTRAINT u_server_ip_port UNIQUE(ip_address, port)
 );
 
 CREATE TABLE IF NOT EXISTS account_login(
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS account_server_join(
     CONSTRAINT fk_account_server_join_server FOREIGN KEY(server_id)  REFERENCES server(id)
 );
 
-CREATE TABLE IF NOT EXISTS report(
+CREATE TABLE IF NOT EXISTS account_report(
 
     id            INT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
     account_id    INT UNSIGNED  NOT NULL,
@@ -70,7 +70,18 @@ CREATE TABLE IF NOT EXISTS report(
     CONSTRAINT fk_report_reported FOREIGN KEY(reported_id) REFERENCES account(id)
 );
 
--- TODO Report reply table
+CREATE TABLE IF NOT EXISTS account_report_reply(
+
+    id            INT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    report_id     INT UNSIGNED  NOT NULL UNIQUE,
+    staff_id      INT UNSIGNED  NOT NULL,
+    accepted      BOOLEAN       NOT NULL,
+    message       VARCHAR(3000) NOT NULL DEFAULT '',
+    creation_date DATETIME(3)   NOT NULL DEFAULT UTC_TIMESTAMP(3),
+
+    CONSTRAINT fk_report_reply_staff  FOREIGN KEY(staff_id)  REFERENCES account(id),
+    CONSTRAINT fk_report_reply_report FOREIGN KEY(report_id) REFERENCES report(id) ON DELETE CASCADE
+);
 
 CREATE TABLE IF NOT EXISTS ban(
 
@@ -135,8 +146,11 @@ CREATE TABLE IF NOT EXISTS warn(
 CREATE TABLE IF NOT EXISTS ip_blacklist(
 
     id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    staff_id      INT UNSIGNED NOT NULL,
     ip_address    INET4        NOT NULL UNIQUE,
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3)
+
+    CONSTRAINT fk_ip_blacklist_staff FOREIGN KEY(staff_id) REFERENCES account(id)
 );
 
 CREATE TABLE IF NOT EXISTS role(
