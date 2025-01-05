@@ -57,6 +57,21 @@ CREATE TABLE IF NOT EXISTS account_server_join(
     CONSTRAINT fk_account_server_join_server FOREIGN KEY(server_id)  REFERENCES server(id)
 );
 
+CREATE TABLE IF NOT EXISTS report(
+
+    id            INT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id    INT UNSIGNED  NOT NULL,
+    reported_id   INT UNSIGNED  NOT NULL,
+    reason        VARCHAR(255)  NOT NULL,
+    notes         VARCHAR(3000) NOT NULL DEFAULT '',
+    creation_date DATETIME(3)   NOT NULL DEFAULT UTC_TIMESTAMP(3),
+
+    CONSTRAINT fk_report_account  FOREIGN KEY(account_id)  REFERENCES account(id),
+    CONSTRAINT fk_report_reported FOREIGN KEY(reported_id) REFERENCES account(id)
+);
+
+-- TODO Report reply table
+
 CREATE TABLE IF NOT EXISTS ban(
 
     id          INT UNSIGNED    NOT NULL AUTO_INCREMENT PRIMARY KEY,
