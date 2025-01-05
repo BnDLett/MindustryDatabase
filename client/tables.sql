@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS server(
     id               INT UNSIGNED      NOT NULL AUTO_INCREMENT PRIMARY KEY,
     ip_address       INET4             NOT NULL,
     port             SMALLINT UNSIGNED NOT NULL,
-    name             VARCHAR(100)      NOT NULL,
+    name             TINYTEXT          NOT NULL,
     -- Last heartbeat available used in case the server goes offline.
     heartbeat        DATETIME(3)       NOT NULL DEFAULT UTC_TIMESTAMP(3),
     -- The period of the heartbeat in milliseconds.
@@ -59,12 +59,12 @@ CREATE TABLE IF NOT EXISTS account_server_join(
 
 CREATE TABLE IF NOT EXISTS account_report(
 
-    id            INT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    account_id    INT UNSIGNED  NOT NULL,
-    reported_id   INT UNSIGNED  NOT NULL,
-    reason        VARCHAR(255)  NOT NULL,
-    notes         VARCHAR(3000) NOT NULL DEFAULT '',
-    creation_date DATETIME(3)   NOT NULL DEFAULT UTC_TIMESTAMP(3),
+    id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id    INT UNSIGNED NOT NULL,
+    reported_id   INT UNSIGNED NOT NULL,
+    short_reason  TINYTEXT     NOT NULL,
+    long_reason   TEXT         NOT NULL DEFAULT '',
+    creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
     CONSTRAINT fk_report_account  FOREIGN KEY(account_id)  REFERENCES account(id),
     CONSTRAINT fk_report_reported FOREIGN KEY(reported_id) REFERENCES account(id)
@@ -72,12 +72,12 @@ CREATE TABLE IF NOT EXISTS account_report(
 
 CREATE TABLE IF NOT EXISTS account_report_reply(
 
-    id            INT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    report_id     INT UNSIGNED  NOT NULL UNIQUE,
-    staff_id      INT UNSIGNED  NOT NULL,
-    accepted      BOOLEAN       NOT NULL,
-    message       VARCHAR(3000) NOT NULL DEFAULT '',
-    creation_date DATETIME(3)   NOT NULL DEFAULT UTC_TIMESTAMP(3),
+    id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    report_id     INT UNSIGNED NOT NULL UNIQUE,
+    staff_id      INT UNSIGNED NOT NULL,
+    accepted      BOOLEAN      NOT NULL,
+    message       TEXT         NOT NULL DEFAULT '',
+    creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
     CONSTRAINT fk_report_reply_staff  FOREIGN KEY(staff_id)  REFERENCES account(id),
     CONSTRAINT fk_report_reply_report FOREIGN KEY(report_id) REFERENCES report(id) ON DELETE CASCADE
@@ -85,13 +85,12 @@ CREATE TABLE IF NOT EXISTS account_report_reply(
 
 CREATE TABLE IF NOT EXISTS ban(
 
-    id          INT UNSIGNED    NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    account_id  INT UNSIGNED    NOT NULL,
-    staff_id    INT UNSIGNED    NOT NULL,
-    server_id   INT UNSIGNED    NOT NULL,
-    reason      VARCHAR(255)    NOT NULL,
-    notes       VARCHAR(3000)   NOT NULL DEFAULT '',
-    when_issued DATETIME(3)     NOT NULL DEFAULT UTC_TIMESTAMP(3),
+    id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id  INT UNSIGNED NOT NULL,
+    staff_id    INT UNSIGNED NOT NULL,
+    server_id   INT UNSIGNED NOT NULL,
+    reason      TEXT         NOT NULL,
+    when_issued DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
     -- Null for bans that are permanent.
     expiration_date DATETIME(3) NULL,
 
@@ -113,13 +112,12 @@ CREATE TABLE IF NOT EXISTS unban(
 
 CREATE TABLE IF NOT EXISTS kick(
 
-    id          INT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    account_id  INT UNSIGNED  NOT NULL,
-    staff_id    INT UNSIGNED  NOT NULL,
-    server_id   INT UNSIGNED  NOT NULL,
-    reason      VARCHAR(255)  NOT NULL,
-    notes       VARCHAR(3000) NOT NULL DEFAULT '',
-    when_issued DATETIME(3)   NOT NULL DEFAULT UTC_TIMESTAMP(3),
+    id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id  INT UNSIGNED NOT NULL,
+    staff_id    INT UNSIGNED NOT NULL,
+    server_id   INT UNSIGNED NOT NULL,
+    reason      TEXT         NOT NULL,
+    when_issued DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
     CONSTRAINT fk_kick_user   FOREIGN KEY(account_id) REFERENCES account(id),
     CONSTRAINT fk_kick_staff  FOREIGN KEY(staff_id)   REFERENCES account(id),
@@ -128,15 +126,14 @@ CREATE TABLE IF NOT EXISTS kick(
 
 CREATE TABLE IF NOT EXISTS warn(
 
-    id          INT UNSIGNED  NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    account_id  INT UNSIGNED  NOT NULL,
-    staff_id    INT UNSIGNED  NOT NULL,
-    server_id   INT UNSIGNED  NOT NULL,
-    reason      VARCHAR(255)  NOT NULL,
-    notes       VARCHAR(3000) NOT NULL DEFAULT '',
-    when_issued DATETIME(3)   NOT NULL DEFAULT UTC_TIMESTAMP(3),
+    id          INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    account_id  INT UNSIGNED NOT NULL,
+    staff_id    INT UNSIGNED NOT NULL,
+    server_id   INT UNSIGNED NOT NULL,
+    reason      TEXT         NOT NULL,
+    when_issued DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
     -- False if the warn needs to be shown to the user, true if the user has read it.
-    received    BOOLEAN       NOT NULL,
+    received    BOOLEAN      NOT NULL,
 
     CONSTRAINT fk_warn_user   FOREIGN KEY(account_id) REFERENCES account(id),
     CONSTRAINT fk_warn_staff  FOREIGN KEY(staff_id)   REFERENCES account(id),
@@ -156,7 +153,7 @@ CREATE TABLE IF NOT EXISTS ip_blacklist(
 CREATE TABLE IF NOT EXISTS role(
 
     id       INT UNSIGNED     NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name     VARCHAR(255)     NOT NULL,
+    name     TINYTEXT         NOT NULL,
     priority TINYINT UNSIGNED NOT NULL,
     symbol   VARCHAR(16)      NOT NULL,
     color    CHAR(8)          NOT NULL
