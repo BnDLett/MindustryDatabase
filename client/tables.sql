@@ -31,14 +31,14 @@ CREATE TABLE IF NOT EXISTS server(
     CONSTRAINT u_server_ip_port UNIQUE(ip_address, port)
 );
 
-CREATE TABLE IF NOT EXISTS account_login(
+CREATE TABLE IF NOT EXISTS login(
 
     id         INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     account_id INT UNSIGNED NOT NULL,
     ip_address INET4        NOT NULL,
     login_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
-    CONSTRAINT fk_account_login_user FOREIGN KEY(account_id) REFERENCES account(id)
+    CONSTRAINT fk_login_user FOREIGN KEY(account_id) REFERENCES account(id)
 );
 
 CREATE TABLE IF NOT EXISTS account_session(
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS account_session(
     CONSTRAINT fk_account_session FOREIGN KEY(account_id) REFERENCES account(id)
 );
 
-CREATE TABLE IF NOT EXISTS account_server_join(
+CREATE TABLE IF NOT EXISTS server_join(
 
     id         INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     account_id INT UNSIGNED NOT NULL,
@@ -59,11 +59,11 @@ CREATE TABLE IF NOT EXISTS account_server_join(
     join_date  DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
     leave_date DATETIME(3)  NULL     DEFAULT NULL,
 
-    CONSTRAINT fk_account_server_join_user   FOREIGN KEY(account_id) REFERENCES account(id),
-    CONSTRAINT fk_account_server_join_server FOREIGN KEY(server_id)  REFERENCES server(id)
+    CONSTRAINT fk_server_join_user   FOREIGN KEY(account_id) REFERENCES account(id),
+    CONSTRAINT fk_server_join_server FOREIGN KEY(server_id)  REFERENCES server(id)
 );
 
-CREATE TABLE IF NOT EXISTS account_report(
+CREATE TABLE IF NOT EXISTS report(
 
     id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     account_id    INT UNSIGNED NOT NULL,
@@ -72,11 +72,11 @@ CREATE TABLE IF NOT EXISTS account_report(
     long_reason   TEXT         NOT NULL DEFAULT '',
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
-    CONSTRAINT fk_account_report_account  FOREIGN KEY(account_id)  REFERENCES account(id),
-    CONSTRAINT fk_account_report_reported FOREIGN KEY(reported_id) REFERENCES account(id)
+    CONSTRAINT fk_report_account  FOREIGN KEY(account_id)  REFERENCES account(id),
+    CONSTRAINT fk_report_reported FOREIGN KEY(reported_id) REFERENCES account(id)
 );
 
-CREATE TABLE IF NOT EXISTS account_report_reply(
+CREATE TABLE IF NOT EXISTS report_reply(
 
     id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     report_id     INT UNSIGNED NOT NULL UNIQUE,
@@ -85,8 +85,8 @@ CREATE TABLE IF NOT EXISTS account_report_reply(
     message       TEXT         NOT NULL DEFAULT '',
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
-    CONSTRAINT fk_account_report_reply_staff  FOREIGN KEY(staff_id)  REFERENCES account(id),
-    CONSTRAINT fk_account_report_reply_report FOREIGN KEY(report_id) REFERENCES account_report(id) ON DELETE CASCADE
+    CONSTRAINT fk_report_reply_staff  FOREIGN KEY(staff_id)  REFERENCES account(id),
+    CONSTRAINT fk_report_reply_report FOREIGN KEY(report_id) REFERENCES report(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ban(
