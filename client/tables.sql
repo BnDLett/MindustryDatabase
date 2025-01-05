@@ -3,12 +3,18 @@
 CREATE TABLE IF NOT EXISTS account(
 
     id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    username      VARCHAR(30)  NOT NULL UNIQUE,
+    username      VARCHAR(32)  NOT NULL UNIQUE,
+    display_name  TINYTEXT     NOT NULL,
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
     salt          BINARY(16)   NOT NULL,
     password      BINARY(128)  NOT NULL,
 
-    CONSTRAINT chk_username_length CHECK (CHAR_LENGTH(username) > 3)
+    -- I use the discord username validation since they fit our use cases.
+    CONSTRAINT chk_username_valid CHECK (
+            CHAR_LENGTH(username) BETWEEN 2 AND 32 AND
+            username REGEXP '^[a-z0-9_.]+$' AND
+            username NOT REGEXP '\\.\\.'
+    )
 );
 
 CREATE TABLE IF NOT EXISTS server(
@@ -154,6 +160,7 @@ CREATE TABLE IF NOT EXISTS role(
 
     id       INT UNSIGNED     NOT NULL AUTO_INCREMENT PRIMARY KEY,
     name     TINYTEXT         NOT NULL,
+    -- The order of which the roles are displayed, smallest first.
     priority TINYINT UNSIGNED NOT NULL,
     symbol   VARCHAR(16)      NOT NULL,
     color    CHAR(8)          NOT NULL
@@ -162,7 +169,8 @@ CREATE TABLE IF NOT EXISTS role(
 CREATE TABLE IF NOT EXISTS permission(
 
     id       INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    property VARCHAR(200) NOT NULL UNIQUE
+    -- Lowercase with - as space separators.
+    property TINYTEXT     NOT NULL UNIQUE
 );
 
 CREATE TABLE IF NOT EXISTS account_role(
