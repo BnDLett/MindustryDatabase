@@ -19,12 +19,14 @@ repositories {
 ext {
     jooq_version    = "3.19.16"
     mariadb_version = "3.5.1"
+    argon2_version  = "2.11"
 }
 
 dependencies {
 
     implementation ("org.mariadb.jdbc:mariadb-java-client:${mariadb_version}")
     implementation("org.jooq:jooq:${jooq_version}")
+    implementation("de.mkammerer:argon2-jvm-nolibs:${argon2_version}")
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'

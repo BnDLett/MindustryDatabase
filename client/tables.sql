@@ -6,8 +6,7 @@ CREATE TABLE IF NOT EXISTS account(
     username      VARCHAR(15)  NOT NULL UNIQUE, -- Anything bigger than 15 is quite long.
     display_name  TINYTEXT     NOT NULL,
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
-    salt          BINARY(32)   NOT NULL,
-    password      BINARY(256)  NOT NULL,
+    password      TINYTEXT     NOT NULL, -- argon2id
 
     -- I use the discord username validation since they fit our use cases.
     CONSTRAINT chk_username_valid CHECK (
@@ -179,7 +178,7 @@ CREATE TABLE IF NOT EXISTS ban_appeal(
 CREATE TABLE IF NOT EXISTS ban_appeal_reply(
 
     id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    ban_appeal_id INT UNSIGNED NOT NULL UNIQUE,
+    ban_appeal_id INT UNSIGNED NOT NULL,
     staff_id      INT UNSIGNED NOT NULL,
     accepted      BOOLEAN      NOT NULL,
     message       TEXT         NOT NULL DEFAULT '',
