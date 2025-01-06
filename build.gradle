@@ -4,8 +4,6 @@ apply plugin: 'maven-publish'
 group = 'com.github.BnDLett'
 version '1.0'
 
-sourceCompatibility = JavaVersion.VERSION_16
-
 sourceSets.main.java.srcDirs = ["src"]
 
 compileJava.options.encoding = "UTF-8"

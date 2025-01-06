@@ -1,5 +1,12 @@
+buildscript {
+    dependencies {
+        classpath("org.mariadb.jdbc:mariadb-java-client:3.5.1")
+    }
+}
+
 plugins {
-    id 'java'
+    id 'java-library'
+    id "org.jooq.jooq-codegen-gradle" version "3.19.16"
 }
 
 group = 'net.ddns.mindustry.database.client'
@@ -10,14 +17,14 @@ repositories {
 }
 
 ext {
-    jooq    = "3.19.16"
-    mariadb = "3.5.1"
+    jooq_version    = "3.19.16"
+    mariadb_version = "3.5.1"
 }
 
 dependencies {
 
-    implementation("org.mariadb.jdbc:mariadb-java-client:${mariadb}")
-    implementation("org.jooq:jooq:${jooq}")
+    implementation ("org.mariadb.jdbc:mariadb-java-client:${mariadb_version}")
+    implementation("org.jooq:jooq:${jooq_version}")
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -32,3 +39,82 @@ java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
 }
+
+def dbProps = new Properties()
+file("jooq.properties").withInputStream { stream ->
+    dbProps.load(stream)
+}
+
+jooq {
+    configuration {
+        jdbc {
+            driver   = "org.mariadb.jdbc.Driver"
+            url      = dbProps.getProperty('url')
+            user     = dbProps.getProperty('user')
+            password = dbProps.getProperty('password')
+        }
+        generator {
+            database {
+
+                name = "org.jooq.meta.mariadb.MariaDBDatabase"
+
+                // All elements that are generated from your schema (A Java regular expression.
+                // Use the pipe to separate several expressions) Watch out for
+                // case-sensitivity. Depending on your database, this might be
+                // important!
+                //
+                // You can create case-insensitive regular expressions using this syntax: (?i:expr)
+                //
+                // Whitespace is ignored and comments are possible.
+                includes = ".*"
+
+                // All elements that are excluded from your schema (A Java regular expression.
+                // Use the pipe to separate several expressions). Excludes match before
+                // includes, i.e. excludes have a higher priority
+                excludes = """
+                           UNUSED_TABLE                # This table (unqualified name) should not be generated
+                           | PREFIX_.*                   # Objects with a given prefix should not be generated
+                           | SECRET_SCHEMA\\.SECRET_TABLE # This table (qualified name) should not be generated
+                           | SECRET_ROUTINE              # This routine (unqualified name) ...
+                           """
+                // The schema that is used locally as a source for meta information.
+                // This could be your development schema or the production schema, etc
+                // This cannot be combined with the schemata element.
+                //
+                // If left empty, jOOQ will generate all available schemata. See the
+                // manual's next section to learn how to generate several schemata
+                inputSchema = "mindustry_database"
+
+                forcedTypes {
+                    // INET4 binding to use String.
+                    forcedType {
+
+                        // Specify the Java type of your custom type. Use String for INET4 types.
+                        userType = "java.lang.String"
+
+                        // Optionally specify whether the binding receives <T, U> type variables
+                        // and Class<T>, Class<U> constructor arguments. Default is false.
+                        genericBinding = false
+
+                        // A Java regex matching fully-qualified columns, attributes, parameters. Use the pipe to separate several expressions.
+                        includeExpression = ".*"
+
+                        // A Java regex matching data types to be forced to
+                        // have this type.
+                        includeTypes = "(?i:INET4)"
+                    }
+                }
+            }
+
+            // Generation flags: See advanced configuration properties
+            generate {}
+            target {
+                packageName = "net.ddns.mindustry.database.schema"
+                directory = "build/generated-sources/jooq"
+            }
+        }
+    }
+}
+
+// Ensure jOOQ code generation runs after the build task
+compileJava.dependsOn(jooqCodegen)

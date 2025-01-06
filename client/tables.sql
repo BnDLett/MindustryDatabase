@@ -92,6 +92,8 @@ CREATE TABLE IF NOT EXISTS report_reply(
 CREATE TABLE IF NOT EXISTS ban(
 
     id              INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    -- Random value used to search for this ban.
+    uuid            BIGINT       NOT NULL UNIQUE,
     account_id      INT UNSIGNED NOT NULL,
     staff_id        INT UNSIGNED NOT NULL,
     server_id       INT UNSIGNED NOT NULL,
