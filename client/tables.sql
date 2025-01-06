@@ -3,15 +3,15 @@
 CREATE TABLE IF NOT EXISTS account(
 
     id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    username      VARCHAR(32)  NOT NULL UNIQUE,
+    username      VARCHAR(15)  NOT NULL UNIQUE, -- Anything bigger than 15 is quite long.
     display_name  TINYTEXT     NOT NULL,
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
-    salt          BINARY(16)   NOT NULL,
-    password      BINARY(128)  NOT NULL,
+    salt          BINARY(32)   NOT NULL,
+    password      BINARY(256)  NOT NULL,
 
     -- I use the discord username validation since they fit our use cases.
     CONSTRAINT chk_username_valid CHECK (
-            CHAR_LENGTH(username) BETWEEN 2 AND 32 AND
+            CHAR_LENGTH(username) > 2 AND
             username REGEXP '^[a-z0-9_.]+$' AND
             username NOT REGEXP '\\.\\.'
     )
@@ -98,6 +98,7 @@ CREATE TABLE IF NOT EXISTS ban(
     staff_id        INT UNSIGNED NOT NULL,
     server_id       INT UNSIGNED NOT NULL,
     reason          TEXT         NOT NULL,
+    handled         BOOLEAN      NOT NULL DEFAULT FALSE, -- False if it needs to be handled by the server, true if it has been handled.
     creation_date   DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
     -- Null for bans that are permanent.
     expiration_date DATETIME(3)  NULL,
@@ -125,6 +126,7 @@ CREATE TABLE IF NOT EXISTS kick(
     staff_id      INT UNSIGNED NOT NULL,
     server_id     INT UNSIGNED NOT NULL,
     reason        TEXT         NOT NULL,
+    handled       BOOLEAN      NOT NULL DEFAULT FALSE, -- False if it needs to be handled by the server, true if it has been handled.
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
     CONSTRAINT fk_kick_user   FOREIGN KEY(account_id) REFERENCES account(id),
@@ -139,9 +141,8 @@ CREATE TABLE IF NOT EXISTS warn(
     staff_id      INT UNSIGNED NOT NULL,
     server_id     INT UNSIGNED NOT NULL,
     reason        TEXT         NOT NULL,
+    handled       BOOLEAN      NOT NULL DEFAULT FALSE, -- False if it needs to be handled by the server, true if it has been handled.
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
-    -- False if the warn needs to be shown to the user, true if the user has read it.
-    received      BOOLEAN      NOT NULL,
 
     CONSTRAINT fk_warn_user   FOREIGN KEY(account_id) REFERENCES account(id),
     CONSTRAINT fk_warn_staff  FOREIGN KEY(staff_id)   REFERENCES account(id),

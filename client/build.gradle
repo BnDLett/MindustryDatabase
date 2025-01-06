@@ -107,7 +107,10 @@ jooq {
             }
 
             // Generation flags: See advanced configuration properties
-            generate {}
+            generate {
+                pojos = true
+                pojosAsJavaRecordClasses = true
+            }
             target {
                 packageName = "net.ddns.mindustry.database.schema"
                 directory = "build/generated-sources/jooq"
@@ -115,6 +118,3 @@ jooq {
         }
     }
 }
-
-// Ensure jOOQ code generation runs after the build task
-compileJava.dependsOn(jooqCodegen)
