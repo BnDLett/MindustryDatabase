@@ -20,20 +20,37 @@ public interface AccountQueries {
 
     void logout(Account account) throws DataAccessException;
 
-    JoinStatus joinsServer(Account account, Server server) throws DataAccessException;
+    JoinStatus joinsServer(Server server, String ip, String uuid) throws DataAccessException;
 
     void leavesServer(Account account) throws DataAccessException;
 
     sealed interface LoginStatus {
+
+        /// The credentials are correct and the account has logged in.
         record LoggedIn(Account account) implements LoginStatus {}
-        record WrongCredentials() implements LoginStatus  {}
+
+        /// The username or password provided are wrong.
+        record WrongCredentials() implements LoginStatus {}
+
+        /// The account is already logged in and does not require authentication.
         record AlreadyLoggedIn() implements LoginStatus {}
     }
 
-    enum JoinStatus {
-        JOINED,
-        ALREADY_IN_SERVER,
-        SESSION_EXPIRED,
-        NOT_AUTHENTICATED
+    sealed interface JoinStatus {
+
+        /// The account is authenticated and joined in the server.
+        record Joined(Account account) implements JoinStatus {}
+
+        /// The account is already connected in this or another server.
+        record AlreadyInServer() implements JoinStatus {}
+
+        /// The account session has expired, and the account must re-authenticate.
+        record SessionExpired() implements JoinStatus {}
+
+        /// The account is not authenticated.
+        record NotAuthenticated() implements JoinStatus {}
+
+        /// The account does not have enough authorizations to join this server.
+        record NotAuthorized() implements JoinStatus {}
     }
 }

@@ -25,6 +25,12 @@ public record AccountQueriesImpl(DSLContext dsl) implements AccountQueries {
         }
     }
 
+    private static byte[] createSessionHash(String ip, String uuid) {
+        Objects.requireNonNull(ip);
+        Objects.requireNonNull(uuid);
+        return SHA2_256.digest((ip + uuid).getBytes(StandardCharsets.UTF_8));
+    }
+
     private boolean hasSession(DSLContext tDsl, byte[] session) {
         return tDsl.select(ACCOUNT_SESSION.ID, ACCOUNT_SESSION.EXPIRATION_DATE)
                 .from(ACCOUNT_SESSION)
@@ -56,6 +62,12 @@ public record AccountQueriesImpl(DSLContext dsl) implements AccountQueries {
                 .fetchOptionalInto(Account.class);
     }
 
+    public Account find(DSLContext tDsl, UInteger id) {
+        return tDsl.selectFrom(ACCOUNT)
+                .where(ACCOUNT.ID.eq(id))
+                .fetchOneInto(Account.class);
+    }
+
     @Override
     public Optional<Account> find(String username) {
         return find(dsl, username);
@@ -66,11 +78,9 @@ public record AccountQueriesImpl(DSLContext dsl) implements AccountQueries {
 
         Objects.requireNonNull(username);
         Objects.requireNonNull(password);
-        Objects.requireNonNull(ip);
-        Objects.requireNonNull(uuid);
         if (durationHours <= 0) throw new IllegalArgumentException("The hours cannot be negative or 0.");
 
-        final byte[] session = SHA2_256.digest((ip + uuid).getBytes(StandardCharsets.UTF_8));
+        final byte[] session = createSessionHash(ip, uuid);
 
         return dsl.transactionResult(ctx -> {
             DSLContext tDsl = ctx.dsl();
@@ -95,40 +105,44 @@ public record AccountQueriesImpl(DSLContext dsl) implements AccountQueries {
     }
 
     @Override
-    public JoinStatus joinsServer(Account account, Server server) throws DataAccessException {
+    public JoinStatus joinsServer(Server server, String ip, String uuid) throws DataAccessException {
 
-        Objects.requireNonNull(account);
         Objects.requireNonNull(server);
+        final byte[] session = createSessionHash(ip, uuid);
 
         return dsl.transactionResult(ctx -> {
             final DSLContext tDsl = ctx.dsl();
 
-            final var result = tDsl.select(ACCOUNT_SESSION.EXPIRATION_DATE)
+            final var result = tDsl.select(ACCOUNT_SESSION.ACCOUNT_ID, ACCOUNT_SESSION.EXPIRATION_DATE)
                     .from(ACCOUNT_SESSION)
-                    .where(ACCOUNT_SESSION.ACCOUNT_ID.eq(account.id()))
+                    .where(ACCOUNT_SESSION.SESSION_COOKIE.eq(session))
                     .fetchOne();
 
             // No entry means not authenticated.
-            if (result == null) return JoinStatus.NOT_AUTHENTICATED;
+            if (result == null) return new JoinStatus.NotAuthenticated();
+
+            final UInteger accountId = result.get(ACCOUNT_SESSION.ACCOUNT_ID);
 
             // I check if the session expired.
             if (result.get(ACCOUNT_SESSION.EXPIRATION_DATE)
                     .atOffset(ZoneOffset.UTC)
-                    .isBefore(OffsetDateTime.now(ZoneOffset.UTC))) return JoinStatus.SESSION_EXPIRED;
+                    .isBefore(OffsetDateTime.now(ZoneOffset.UTC))) return new JoinStatus.SessionExpired();
 
             // I check if the account is already inside a server.
             if (tDsl.selectOne()
                     .from(SERVER_JOIN)
-                    .where(SERVER_JOIN.ACCOUNT_ID.eq(account.id()).and(SERVER_JOIN.LEAVE_DATE.isNull()))
+                    .where(SERVER_JOIN.ACCOUNT_ID.eq(accountId).and(SERVER_JOIN.LEAVE_DATE.isNull()))
                     .fetchOptional()
-                    .isPresent()) return JoinStatus.ALREADY_IN_SERVER;
+                    .isPresent()) return new JoinStatus.AlreadyInServer();
 
             tDsl.insertInto(SERVER_JOIN)
-                    .set(SERVER_JOIN.ACCOUNT_ID, account.id())
+                    .set(SERVER_JOIN.ACCOUNT_ID, accountId)
                     .set(SERVER_JOIN.SERVER_ID, server.id())
                     .execute();
 
-            return JoinStatus.JOINED;
+            // TODO Server authorization.
+
+            return new JoinStatus.Joined(find(tDsl, accountId));
         });
     }
 

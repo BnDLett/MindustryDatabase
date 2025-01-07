@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS account(
     )
 );
 
+-- TODO Server authorization based on user role.
 CREATE TABLE IF NOT EXISTS server(
 
     id               INT UNSIGNED      NOT NULL AUTO_INCREMENT PRIMARY KEY,
