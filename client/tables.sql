@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS login(
 CREATE TABLE IF NOT EXISTS account_session(
 
     id              INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    account_id      INT UNSIGNED NOT NULL,
+    account_id      INT UNSIGNED NOT NULL UNIQUE, -- There can be only one session at a time.
     session_cookie  BINARY(32)   NOT NULL UNIQUE,
     expiration_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
 
