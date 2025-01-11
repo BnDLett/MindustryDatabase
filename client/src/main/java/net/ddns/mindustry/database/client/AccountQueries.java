@@ -16,7 +16,7 @@ public interface AccountQueries {
     /// @param password the password of the account.
     /// @param ip the ip of player used
     /// @param durationHours the duration of the session in hours.
-    LoginStatus login(String username, String password, String ip, String uuid, int durationHours) throws DataAccessException;
+    LoginStatus login(String username, char[] password, String ip, String uuid, int durationHours) throws DataAccessException;
 
     void logout(Account account) throws DataAccessException;
 

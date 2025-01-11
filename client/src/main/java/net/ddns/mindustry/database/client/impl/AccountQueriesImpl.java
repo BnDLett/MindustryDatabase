@@ -1,34 +1,24 @@
 package net.ddns.mindustry.database.client.impl;
 
 import net.ddns.mindustry.database.client.AccountQueries;
+import net.ddns.mindustry.database.client.SecurityConfig;
 import net.ddns.mindustry.database.schema.tables.pojos.Account;
 import net.ddns.mindustry.database.schema.tables.pojos.Server;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
 import org.jooq.types.UInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.*;
 import java.util.Objects;
 import java.util.Optional;
 import static net.ddns.mindustry.database.schema.Tables.*;
 
-public record AccountQueriesImpl(DSLContext dsl) implements AccountQueries {
+public record AccountQueriesImpl(DSLContext dsl, SecurityConfig security) implements AccountQueries {
 
-    private static final MessageDigest SHA2_256;
-
-    static {
-        try { SHA2_256 = MessageDigest.getInstance("SHA2-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("Could not find the wanted algorithm.", e);
-        }
-    }
-
-    private static byte[] createSessionHash(String ip, String uuid) {
+    private byte[] createSessionHash(String ip, String uuid) {
         Objects.requireNonNull(ip);
         Objects.requireNonNull(uuid);
-        return SHA2_256.digest((ip + uuid).getBytes(StandardCharsets.UTF_8));
+        return security().sessionHash().digest((ip + uuid).getBytes(StandardCharsets.UTF_8));
     }
 
     private boolean hasSession(DSLContext tDsl, byte[] session) {
@@ -74,7 +64,7 @@ public record AccountQueriesImpl(DSLContext dsl) implements AccountQueries {
     }
 
     @Override
-    public LoginStatus login(String username, String password, String ip, String uuid, int durationHours) {
+    public LoginStatus login(String username, char[] password, String ip, String uuid, int durationHours) {
 
         Objects.requireNonNull(username);
         Objects.requireNonNull(password);
@@ -87,12 +77,29 @@ public record AccountQueriesImpl(DSLContext dsl) implements AccountQueries {
 
             if (hasSession(tDsl, session)) return new LoginStatus.AlreadyLoggedIn();
 
+            /*
+            I calculate the compute-expensive password.
+            I do this here because:
+             - I want the already authenticated players to be checked fast.
+             - I want to take the same amount of time if the user exists or not, to avoid username scanning.
+             */
+            final String hashedPassword = security().hashPass(password);
+
             final Account account = find(tDsl, username).orElse(null);
             if (account == null) return new LoginStatus.WrongCredentials();
 
-            // TODO Argon2id password.
+            if (!security.verifyPassHash(hashedPassword, password)) return new LoginStatus.WrongCredentials();
 
-            throw new IllegalStateException("Not implemented");
+            // I update the password in case the argon2 settings have been changed.
+            tDsl.update(ACCOUNT)
+                    .set(ACCOUNT.PASSWORD, hashedPassword)
+                    .where(ACCOUNT.ID.eq(account.id()))
+                    .execute();
+
+            // I create a new session for the user.
+            createSession(tDsl, account.id(), session, durationHours);
+
+            return new LoginStatus.LoggedIn(account);
         });
     }
 

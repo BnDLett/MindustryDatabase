@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS account(
     username      VARCHAR(15)  NOT NULL UNIQUE, -- Anything bigger than 15 is quite long.
     display_name  TINYTEXT     NOT NULL,
     creation_date DATETIME(3)  NOT NULL DEFAULT UTC_TIMESTAMP(3),
-    password      TINYTEXT     NOT NULL, -- argon2id
+    -- argon2id variable length hash, I use TEXT because the hash can get very long by changing the settings, and I want to allow that for future proofing.
+    password      TEXT         NOT NULL,
 
     -- I use the discord username validation since they fit our use cases.
     CONSTRAINT chk_username_valid CHECK (
